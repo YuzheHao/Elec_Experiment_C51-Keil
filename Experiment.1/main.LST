@@ -1,0 +1,247 @@
+C51 COMPILER V8.02   MAIN                                                                  09/29/2018 17:43:02 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2                  main.c
+   3                  控制交流蜂鸣器演奏简单的乐曲
+   4          */
+   5          
+   6          
+   7          #include <reg51.h>
+   8          
+   9          
+  10          sbit BUZZER = P1^0;             //交流蜂鸣器由P1.3管脚控制
+  11          
+  12          unsigned int LED[7];
+  13          unsigned int m; 
+  14          
+  15          sbit LED1 = P0^0;       //定义LED由P0.0控制
+  16          sbit LED2 = P0^1;
+  17          sbit LED3 = P0^2;
+  18          sbit LED4 = P0^3;
+  19          sbit LED5 = P0^4;       
+  20          sbit LED6 = P0^5;       
+  21          sbit LED7 = P0^6;
+  22          
+  23          
+  24          
+  25          //定义音名
+  26          //L1～L7表示低音，M1～M7表示中音，H1～H7表示高音
+  27          #define L1      0xF91F  //261.63（单位：Hz，下同）
+  28          #define L2      0xF9DF  //293.66
+  29          #define L3      0xFA8A  //329.63
+  30          #define L4      0xFAD9  //349.23（低音3到低音4为半音）
+  31          #define L5      0xFB68  //392.00
+  32          #define L6      0xFBE9  //440.00
+  33          #define L7      0xFC5B  //493.88
+  34          #define M1      0xFC8F  //523.25（低音7到中音1为半音）
+  35          #define M2      0xFCEF  //587.33
+  36          #define M3      0xFD45  //659.26
+  37          #define M4      0xFD6C  //698.46（中音3到中音4为半音）
+  38          #define M5      0xFDB4  //783.99
+  39          #define M6      0xFDF4  //880.00
+  40          #define M7      0xFE2D  //987.77
+  41          #define H1      0xFE48  //1046.5（中音7到高音1为半音）
+  42          #define H2      0xFE78  //1174.7
+  43          #define H3      0xFEA3  //1318.5
+  44          #define H4      0xFEB6  //1396.9（高音3到高音4为半音）
+  45          #define H5      0xFEDA  //1568.0
+  46          #define H6      0xFEFA  //1760.0
+  47          #define H7      0xFF17  //1975.5
+  48          #define OO      0x0000
+  49          
+  50          
+  51          //定义基本拍节
+  52          //T表示1拍，T/2表示半拍，T*2表示2两拍，等等
+  53          #define T       300
+  54          
+  55          
+C51 COMPILER V8.02   MAIN                                                                  09/29/2018 17:43:02 PAGE 2   
+
+  56          //定义音符结构
+  57          typedef struct
+  58          {
+  59                  unsigned int mFreq;             //频率对应的定时器初值
+  60                  unsigned int mDelay;    //延时值
+  61                  unsigned int mLED;
+  62          }CNote;
+  63          
+  64          
+  65          //定义定时器T1重装值
+  66          volatile char ReloadH;
+  67          volatile char ReloadL;
+  68          
+  69          
+  70          /*
+  71          函数：T1INTSVC()
+  72          功能：定时器T1中断服务函数
+  73          */
+  74          void T1INTSVC() interrupt 3
+  75          {
+  76   1              TR1 = 0;
+  77   1              TH1 = ReloadH;
+  78   1              TL1 = ReloadL;
+  79   1              TR1 = 1;
+  80   1              BUZZER = !BUZZER;
+  81   1      }
+  82          
+  83          
+  84          /*
+  85          函数：Delay()
+  86          功能：延时0.001～65.536s
+  87          参数：
+  88                  t>0时，延时(t*0.001)s
+  89                  t=0时，延时65.536s
+  90          */
+  91          void Delay(unsigned int t)
+  92          {
+  93   1              do
+  94   1              {
+  95   2                      TH0 = 0xfa;
+  96   2                      TL0 = 0x24;
+  97   2                      TR0 = 1;
+  98   2                      while ( !TF0 );
+  99   2                      TR0 = 0;
+ 100   2                      TF0 = 0;
+ 101   2              } while ( --t != 0 );
+ 102   1      }
+ 103          
+ 104          
+ 105          /*
+ 106          函数：Sound()
+ 107          功能：演奏一个音符
+ 108          参数：
+ 109                  *note：音符指针，指向要演奏的音符
+ 110          */
+ 111          void Sound(CNote *note)
+ 112          {
+ 113   1      //利用定时器T1发出音符的频率
+ 114   1              if ( note->mFreq != 0 )
+ 115   1              {
+ 116   2                      ReloadH = (unsigned char)(note->mFreq >> 8);
+ 117   2                      ReloadL = (unsigned char)(note->mFreq);
+C51 COMPILER V8.02   MAIN                                                                  09/29/2018 17:43:02 PAGE 3   
+
+ 118   2                      TH1 = 0xFF;
+ 119   2                      TL1 = 0xF0;
+ 120   2                      TR1 = 1;
+ 121   2              }
+ 122   1      //拍节延时
+ 123   1              
+ 124   1              switch( note->mLED )
+ 125   1              {
+ 126   2                      case 1:
+ 127   2                              LED1=0;
+ 128   2                              break;
+ 129   2                      case 2:
+ 130   2                              LED2=0;
+ 131   2                              break;
+ 132   2                      case 3:
+ 133   2                              LED3=0;
+ 134   2                              break;
+ 135   2                      case 4:
+ 136   2                              LED4=0;
+ 137   2                              break;
+ 138   2                      case 5:
+ 139   2                              LED5=0;
+ 140   2                              break;
+ 141   2                      case 6:
+ 142   2                              LED6=0;
+ 143   2                              break;
+ 144   2                      case 7:
+ 145   2                              LED7=0;
+ 146   2                              break;
+ 147   2              }
+ 148   1      
+ 149   1      
+ 150   1              Delay(note->mDelay);
+ 151   1              
+ 152   1      //停止发声
+ 153   1              TR1 = 0;
+ 154   1              BUZZER = 1;
+ 155   1      
+ 156   1              LED1=1;
+ 157   1              LED2=1;
+ 158   1              LED3=1;
+ 159   1              LED4=1;
+ 160   1              LED5=1;
+ 161   1              LED6=1;
+ 162   1              LED7=1;
+ 163   1      
+ 164   1      //短暂停顿
+ 165   1              Delay(700);
+ 166   1      }
+ 167          
+ 168          
+ 169          /*
+ 170          函数：Play()
+ 171          功能：演奏一段乐曲
+ 172          参数：
+ 173                  music[]：要演奏的乐曲
+ 174          */
+ 175          void Play(CNote music[])
+ 176          {
+ 177   1              unsigned int n = 0;
+ 178   1              for (;;)
+ 179   1              {
+C51 COMPILER V8.02   MAIN                                                                  09/29/2018 17:43:02 PAGE 4   
+
+ 180   2                      if ( music[n].mDelay == 0 ) break;
+ 181   2                      Sound(&(music[n]));
+ 182   2                      n++;
+ 183   2              }
+ 184   1      }
+ 185          
+ 186          
+ 187          code CNote MusicTab[] =
+ 188          {
+ 189          //      {音名,节拍}
+ 190                  {M7,T,7},
+ 191                  {M6,T,6},
+ 192                  {M5,T,5},
+ 193                  {M4,T,4},
+ 194                  {M3,T,3},
+ 195                  {M2,T,2},
+ 196                  {M1,T,1},
+ 197                  {0,0}           //结束标志
+ 198          };
+ 199          
+ 200          
+ 201                                                                                             
+ 202          
+ 203          //主程序
+ 204          void main()
+ 205          {
+ 206   1              TMOD = 0x11;    //T0和T1都设置成16位定时器
+ 207   1              ET1 = 1;                //允许T1中断
+ 208   1              EA = 1;                 //允许总中断
+ 209   1      
+ 210   1              for (;;)
+ 211   1              {
+ 212   2                      Play(MusicTab); //演奏
+ 213   2      
+ 214   2                      Delay(1);       //
+ 215   2                      
+ 216   2              }
+ 217   1      }
+ 218          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    263    ----
+   CONSTANT SIZE    =     48    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     18       5
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
