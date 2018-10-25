@@ -1,0 +1,208 @@
+C51 COMPILER V8.02   MAIN                                                                  09/29/2018 18:49:16 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2                  main.c
+   3                  加减计数器
+   4          */
+   5          
+   6          
+   7          #include <reg51.h>
+   8          #include <absacc.h>
+   9          #include <ctype.h>
+  10          
+  11          
+  12          //定义按键
+  13          sbit KEY1 = P2^2;               //定义按键1，'+'按键，对应核心板上SW_2
+  14          sbit KEY2 = P2^0;               //定义按键2，'-'按键，对应核心板上SW_3
+  15          
+  16          code unsigned char Tab[] =
+  17                  {//定义0123456789AbCdEF的数码管字型数据
+  18                          0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,
+  19                          0x7F,0x6F,0x77,0x7C,0x39,0x5E,0x79,0x71
+  20                  };
+  21          
+  22          sbit PWM = P0^0;
+  23          
+  24          //定义显示缓冲区（由定时中断程序自动扫描）
+  25          unsigned char DispBuf[8];
+  26          
+  27          //定义PWM最大级数，也就是调节LED的亮度等级
+  28          #define PWM_MAX 8
+  29                                                     
+  30          //定义PWM级数，分为0～PWM_MAX-1级
+  31          unsigned char PwmValue;
+  32          
+  33          /*
+  34          函数：KeyScan()
+  35          功能：键盘扫描
+  36          返回：扫描到的键值
+  37          */
+  38          unsigned char KeyScan()
+  39          {
+  40   1              unsigned char k = '\0';
+  41   1              if ( KEY1 == 0 ) k = '+';
+  42   1              if ( KEY2 == 0 ) k = '-';
+  43   1              return k;
+  44   1      }
+  45          
+  46          /*
+  47          函数：T1INTSVC()
+  48          功能：定时器T1的中断服务函数
+  49          */
+  50          void T1INTSVC() interrupt 3
+  51          {
+  52   1              code unsigned char com[] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80};
+  53   1              static unsigned char n = 0;
+  54   1              static unsigned char t = 0;
+  55   1              TR1 = 0;
+C51 COMPILER V8.02   MAIN                                                                  09/29/2018 18:49:16 PAGE 2   
+
+  56   1              TH1 = 0xFA;
+  57   1              TL1 = 0x24;
+  58   1              TR1 = 1;
+  59   1              XBYTE[0x7800] = 0xFF;           //暂停显示
+  60   1              XBYTE[0x7801] = ~DispBuf[n];    //更新扫描数据
+  61   1              XBYTE[0x7800] = ~com[n];//      重新显示
+  62   1              n++     ;
+  63   1              n &= 0x07;
+  64   1      
+  65   1              t++;
+  66   1              if ( t >= PWM_MAX-1 ) t = 0;    //PWM波的周期为：PWM_MAX*1ms = 20ms
+  67   1              if ( t < PwmValue )
+  68   1              {
+  69   2                      PWM = 1;                //PWM波高电平时间(LED灭)：PwmValue*1ms
+  70   2              }
+  71   1              else
+  72   1              {
+  73   2                      PWM = 0;                //PWM波低电平时间(LED亮)：（PWM_MAX-PwmValue）*1ms
+  74   2              }
+  75   1      }
+  76          
+  77          
+  78          /*
+  79          函数：DispClear()
+  80          功能：清除数码管的所有显示
+  81          */
+  82          void DispClear()
+  83          {
+  84   1              unsigned char i;
+  85   1              for ( i=0; i<8; i++ )
+  86   1              {
+  87   2                      DispBuf[i] = 0x00;
+  88   2              }
+  89   1      }
+  90          
+  91          
+  92          
+  93          /*
+  94          函数：DispInit()
+  95          功能：数码管扫描显示初始化
+  96          */
+  97          void DispInit()
+  98          {
+  99   1              DispClear();    //初始为全灭
+ 100   1              EA = 0;
+ 101   1              TH1 = 0xFA;
+ 102   1              TL1 = 0x24;
+ 103   1              TR1 = 1;
+ 104   1              ET1 = 1;
+ 105   1              EA = 1;
+ 106   1      }
+ 107          
+ 108          
+ 109          /*
+ 110          函数：Delay()
+ 111          功能：延时0.01～2.56s
+ 112          参数：
+ 113                  t>0时，延时(t*0.01)s
+ 114                  t=0时，延时2.56s
+ 115          说明：
+ 116                  晶振用18MHz
+ 117          */
+C51 COMPILER V8.02   MAIN                                                                  09/29/2018 18:49:16 PAGE 3   
+
+ 118          void Delay(unsigned char t)
+ 119          {
+ 120   1              do
+ 121   1              {
+ 122   2                      TH0 = 0xC5;             //定时时间10ms
+ 123   2                      TL0 = 0x68;
+ 124   2                      TR0 = 1;
+ 125   2                      while ( !TF0 );
+ 126   2                      TR0 = 0;
+ 127   2                      TF0 = 0;
+ 128   2              } while ( --t != 0 );
+ 129   1      }
+ 130          
+ 131          
+ 132          /*
+ 133          函数：SysInit()
+ 134          功能：系统初始化
+ 135          */
+ 136          void SysInit()
+ 137          {
+ 138   1              TMOD = 0x11;    //设置定时器T0、T1为16位定时器
+ 139   1              DispInit();             //数码管扫描显示初始化
+ 140   1      }
+ 141          
+ 142          
+ 143          void main()
+ 144          {
+ 145   1      
+ 146   1              unsigned char k;                //定义键值变量
+ 147   1              unsigned char cnt = 14; //定义计数值变量的初始值
+ 148   1      
+ 149   1              SysInit();                              //系统初始化
+ 150   1              DispBuf[0] = Tab[cnt % 10];
+ 151   1              DispBuf[1] = Tab[cnt / 10];
+ 152   1      
+ 153   1              for (;;)
+ 154   1              {
+ 155   2                      Delay(1);               //延时10ms
+ 156   2                      k = KeyScan();  //键盘扫描
+ 157   2                      switch ( k )            //判断键值，执行具体功能
+ 158   2                      {
+ 159   3                      case '+':
+ 160   3                              if ( cnt < 18 ) cnt++;
+ 161   3                              break;
+ 162   3                      case '-':
+ 163   3                              if ( cnt > 11 ) cnt--;
+ 164   3                              break;
+ 165   3                      default:
+ 166   3                              break;
+ 167   3                      }
+ 168   2                      PwmValue = 18-cnt;
+ 169   2                      DispBuf[0] = Tab[cnt % 10];
+ 170   2                      DispBuf[1] = Tab[cnt / 10];
+ 171   2      
+ 172   2                      for (;;)
+ 173   2                      {
+ 174   3                              Delay(1);               //延时50ms
+ 175   3                              if ( KeyScan() == '\0' ) break; //如果按键释放，退出循环
+ 176   3                      }
+ 177   2              }
+ 178   1      }
+ 179          
+C51 COMPILER V8.02   MAIN                                                                  09/29/2018 18:49:16 PAGE 4   
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    254    ----
+   CONSTANT SIZE    =     24    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     11    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

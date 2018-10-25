@@ -1,0 +1,234 @@
+BL51 BANKED LINKER/LOCATER V6.00                                                        09/29/2018  18:49:17  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.00, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE main.obj TO Counter
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  main.obj (MAIN)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  Counter (MAIN)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     000BH     UNIT         ?DT?MAIN
+            IDATA   0013H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0018H     UNIT         ?CO?MAIN
+            CODE    001BH     0003H     ABSOLUTE     
+            CODE    001EH     008CH     UNIT         ?C_C51STARTUP
+            CODE    00AAH     0063H     UNIT         ?PR?MAIN?MAIN
+            CODE    010DH     005AH     UNIT         ?PR?T1INTSVC?MAIN
+            CODE    0167H     0012H     UNIT         ?PR?DISPINIT?MAIN
+            CODE    0179H     0012H     UNIT         ?PR?_DELAY?MAIN
+            CODE    018BH     000DH     UNIT         ?PR?KEYSCAN?MAIN
+            CODE    0198H     000AH     UNIT         ?PR?DISPCLEAR?MAIN
+            CODE    01A2H     0007H     UNIT         ?C_INITSEG
+            CODE    01A9H     0006H     UNIT         ?PR?SYSINIT?MAIN
+
+
+
+OVERLAY MAP OF MODULE:   Counter (MAIN)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?PR?T1INTSVC?MAIN
+  +--> ?CO?MAIN
+
+*** NEW ROOT ***************************************************
+
+?C_C51STARTUP
+  +--> ?PR?MAIN?MAIN
+  +--> ?C_INITSEG
+
+?PR?MAIN?MAIN
+  +--> ?PR?SYSINIT?MAIN
+  +--> ?CO?MAIN
+BL51 BANKED LINKER/LOCATER V6.00                                                      09/29/2018  18:49:17  PAGE 2
+
+
+  +--> ?PR?_DELAY?MAIN
+  +--> ?PR?KEYSCAN?MAIN
+
+?PR?SYSINIT?MAIN
+  +--> ?PR?DISPINIT?MAIN
+
+?PR?DISPINIT?MAIN
+  +--> ?PR?DISPCLEAR?MAIN
+
+
+
+SYMBOL TABLE OF MODULE:  Counter (MAIN)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        MAIN
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:00A0H         PUBLIC        P2
+  B:00A8H.7       PUBLIC        EA
+  C:0003H         PUBLIC        Tab
+  B:00A0H.2       PUBLIC        KEY1
+  B:00A0H.0       PUBLIC        KEY2
+  C:00AAH         PUBLIC        main
+  C:0167H         PUBLIC        DispInit
+  D:000AH         PUBLIC        DispBuf
+  C:018BH         PUBLIC        KeyScan
+  D:0089H         PUBLIC        TMOD
+  D:0012H         PUBLIC        PwmValue
+  B:00A8H.3       PUBLIC        ET1
+  B:0088H.5       PUBLIC        TF0
+  D:008CH         PUBLIC        TH0
+  D:008DH         PUBLIC        TH1
+  D:008AH         PUBLIC        TL0
+  C:0179H         PUBLIC        _Delay
+  D:008BH         PUBLIC        TL1
+  B:0088H.4       PUBLIC        TR0
+  C:01A9H         PUBLIC        SysInit
+  B:0088H.6       PUBLIC        TR1
+  C:010DH         PUBLIC        T1INTSVC
+  B:0080H.0       PUBLIC        PWM
+  C:0198H         PUBLIC        DispClear
+  -------         PROC          KEYSCAN
+  -------         DO            
+  D:0007H         SYMBOL        k
+  -------         ENDDO         
+  C:018BH         LINE#         38
+  C:018BH         LINE#         39
+  C:018BH         LINE#         40
+  C:018DH         LINE#         41
+  C:0192H         LINE#         42
+  C:0197H         LINE#         43
+  C:0197H         LINE#         44
+  -------         ENDPROC       KEYSCAN
+  -------         PROC          T1INTSVC
+  -------         DO            
+BL51 BANKED LINKER/LOCATER V6.00                                                      09/29/2018  18:49:17  PAGE 3
+
+
+  C:0013H         SYMBOL        com
+  D:0008H         SYMBOL        n
+  D:0009H         SYMBOL        t
+  -------         ENDDO         
+  C:010DH         LINE#         50
+  C:011AH         LINE#         55
+  C:011CH         LINE#         56
+  C:011FH         LINE#         57
+  C:0122H         LINE#         58
+  C:0124H         LINE#         59
+  C:012AH         LINE#         60
+  C:0133H         LINE#         61
+  C:013EH         LINE#         62
+  C:0140H         LINE#         63
+  C:0143H         LINE#         65
+  C:0145H         LINE#         66
+  C:014FH         LINE#         67
+  C:0156H         LINE#         68
+  C:0156H         LINE#         69
+  C:0158H         LINE#         70
+  C:015AH         LINE#         72
+  C:015AH         LINE#         73
+  C:015CH         LINE#         74
+  C:015CH         LINE#         75
+  -------         ENDPROC       T1INTSVC
+  -------         PROC          DISPCLEAR
+  -------         DO            
+  D:0007H         SYMBOL        i
+  -------         ENDDO         
+  C:0198H         LINE#         82
+  C:0198H         LINE#         83
+  C:0198H         LINE#         85
+  C:0198H         LINE#         86
+  C:0198H         LINE#         87
+  C:01A1H         LINE#         88
+  C:01A1H         LINE#         89
+  -------         ENDPROC       DISPCLEAR
+  -------         PROC          DISPINIT
+  C:0167H         LINE#         97
+  C:0167H         LINE#         98
+  C:0167H         LINE#         99
+  C:016AH         LINE#         100
+  C:016CH         LINE#         101
+  C:016FH         LINE#         102
+  C:0172H         LINE#         103
+  C:0174H         LINE#         104
+  C:0176H         LINE#         105
+  C:0178H         LINE#         106
+  -------         ENDPROC       DISPINIT
+  -------         PROC          _DELAY
+  D:0007H         SYMBOL        t
+  C:0179H         LINE#         118
+  C:0179H         LINE#         119
+  C:0179H         LINE#         121
+  C:0179H         LINE#         122
+  C:017CH         LINE#         123
+  C:017FH         LINE#         124
+BL51 BANKED LINKER/LOCATER V6.00                                                      09/29/2018  18:49:17  PAGE 4
+
+
+  C:0181H         LINE#         125
+  C:0184H         LINE#         126
+  C:0186H         LINE#         127
+  C:0188H         LINE#         128
+  C:018AH         LINE#         129
+  -------         ENDPROC       _DELAY
+  -------         PROC          SYSINIT
+  C:01A9H         LINE#         136
+  C:01A9H         LINE#         137
+  C:01A9H         LINE#         138
+  C:01ACH         LINE#         139
+  -------         ENDPROC       SYSINIT
+  -------         PROC          MAIN
+  -------         DO            
+  D:0007H         SYMBOL        k
+  D:0006H         SYMBOL        cnt
+  -------         ENDDO         
+  C:00AAH         LINE#         143
+  C:00AAH         LINE#         144
+  C:00AAH         LINE#         147
+  C:00ACH         LINE#         149
+  C:00AFH         LINE#         150
+  C:00BCH         LINE#         151
+  C:00C4H         LINE#         153
+  C:00C4H         LINE#         154
+  C:00C4H         LINE#         155
+  C:00C9H         LINE#         156
+  C:00CCH         LINE#         157
+  C:00D5H         LINE#         158
+  C:00D5H         LINE#         159
+  C:00D5H         LINE#         160
+  C:00DCH         LINE#         161
+  C:00DEH         LINE#         162
+  C:00DEH         LINE#         163
+  C:00E5H         LINE#         164
+  C:00E5H         LINE#         165
+  C:00E5H         LINE#         166
+  C:00E5H         LINE#         167
+  C:00E5H         LINE#         168
+  C:00EBH         LINE#         169
+  C:00F8H         LINE#         170
+  C:0100H         LINE#         172
+  C:0100H         LINE#         173
+  C:0100H         LINE#         174
+  C:0105H         LINE#         175
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        MAIN
+
+Program Size: data=20.0 xdata=0 code=431
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)
