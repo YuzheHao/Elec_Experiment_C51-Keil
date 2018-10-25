@@ -1,0 +1,163 @@
+C51 COMPILER V7.09   DISP                                                                  05/19/2006 10:35:08 PAGE 1   
+
+
+C51 COMPILER V7.09, COMPILATION OF MODULE DISP
+OBJECT MODULE PLACED IN Disp.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE Disp.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*
+   2                  动态数码管扫描驱动程序
+   3          */
+   4          #ifndef _Disp_h_
+   5          #define _Disp_h_
+   6          
+   7          
+   8          #include <reg51.h>
+   9          #include <absacc.h>
+  10          
+  11          
+  12          //定义显示缓冲区（由定时中断程序自动扫描）
+  13          unsigned char DispBuf[8];
+  14          
+  15          
+  16          //定义中断扫描显示缓冲区
+  17          void Timer1_INTSVC() interrupt 3
+  18          {
+  19   1              code unsigned char com[] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80};
+  20   1              static unsigned char n = 0;
+  21   1              TR1 = 0;
+  22   1              TF1 = 0;
+  23   1              TH1 = 0xFC;
+  24   1              TL1 = 0x66;
+  25   1              TR1 = 1;
+  26   1              P1 = ~com[n];
+  27   1              XBYTE[0xD800] = ~DispBuf[n];
+  28   1              n++;
+  29   1              if ( n >= 8 ) n = 0;
+  30   1      }
+  31          
+  32          
+  33          //显示字符
+  34          //能够显示的字符有：0123456789AbCdEF-以及空白
+  35          void DispChar(unsigned char x, unsigned char c)
+  36          {
+  37   1              code unsigned char dat[] =
+  38   1              {//0123456789AbCdEF的数码管字型数据
+  39   1                      0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,
+  40   1                      0x7F,0x6F,0x77,0x7C,0x39,0x5E,0x79,0x71
+  41   1              };
+  42   1              unsigned char d,t;      //临时变量
+  43   1              if ( x >= 8 ) return;
+  44   1              switch (c)
+  45   1              {
+  46   2              case '0':
+  47   2              case '1':
+  48   2              case '2':
+  49   2              case '3':
+  50   2              case '4':
+  51   2              case '5':
+  52   2              case '6':
+  53   2              case '7':
+  54   2              case '8':
+  55   2              case '9':
+C51 COMPILER V7.09   DISP                                                                  05/19/2006 10:35:08 PAGE 2   
+
+  56   2                      d = dat[c-'0'];
+  57   2                      break;
+  58   2              case 'A':
+  59   2              case 'B':
+  60   2              case 'C':
+  61   2              case 'D':
+  62   2              case 'E':
+  63   2              case 'F':
+  64   2                      d = dat[c-'A'+10];
+  65   2                      break;
+  66   2              case 'a':
+  67   2              case 'b':
+  68   2              case 'c':
+  69   2              case 'd':
+  70   2              case 'e':
+  71   2              case 'f':
+  72   2                      d = dat[c-'a'+10];
+  73   2                      break;
+  74   2              case '-':
+  75   2                      d = 0x40;
+  76   2                      break;
+  77   2              default:
+  78   2                      d = 0x00;
+  79   2                      break;
+  80   2              }
+  81   1              d &= 0x7F;
+  82   1              t = DispBuf[7-x];
+  83   1              t &= 0x80;
+  84   1              t |= d;
+  85   1              DispBuf[7-x] = t;
+  86   1      }
+  87          
+  88          
+  89          //显示一串字符
+  90          void DispString(unsigned char x, char *s)
+  91          {
+  92   1              if ( x >= 8 ) return;
+  93   1              while ( *s != '\0' )
+  94   1              {
+  95   2                      DispChar(x,*s++);
+  96   2                      x++;
+  97   2                      if ( x >= 8 ) x = 0;
+  98   2              };
+  99   1      }
+ 100          
+ 101          
+ 102          //显示小数点
+ 103          void DispDotOn(unsigned char x)
+ 104          {
+ 105   1              DispBuf[x] |= 0x80;
+ 106   1      }
+ 107          
+ 108          
+ 109          //不显示小数点
+ 110          void DispDotOff(unsigned char x)
+ 111          {
+ 112   1              DispBuf[x] &= 0x7F;
+ 113   1      }
+ 114          
+ 115          
+ 116          //初始化
+ 117          void DispInit()
+C51 COMPILER V7.09   DISP                                                                  05/19/2006 10:35:08 PAGE 3   
+
+ 118          {
+ 119   1              unsigned char n;
+ 120   1              for ( n=0; n<8; n++ )
+ 121   1              {
+ 122   2                      DispBuf[n] = 0x00;      //初始为全灭
+ 123   2              }
+ 124   1              EA = 0;
+ 125   1              TMOD &= 0x0F;
+ 126   1              TMOD |= 0x10;
+ 127   1              TH1 = 0xFC;
+ 128   1              TL1 = 0x66;
+ 129   1              TR1 = 1;
+ 130   1              ET1 = 1;
+ 131   1              EA = 1;
+ 132   1      }
+ 133          
+ 134          
+ 135          #endif  //_dpy_h
+ 136          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    258    ----
+   CONSTANT SIZE    =     24    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      9       5
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
