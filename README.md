@@ -1,4 +1,4 @@
-# Elec_Experiment_C51-Kiel
+# Elec_Experiment_C51-Keil
 An university experiment project
 
 ## Experiment.1
